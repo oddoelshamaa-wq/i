@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>شات محمود الشماع الذكي</title>
+    <!-- CSS - التصميم -->
+    <style>
+        :root {
+            --primary-color: #2563eb;
+            --bg-color: #f3f4f6;
+            --chat-bg: #ffffff;
+            --user-msg: #dbeafe;
+            --bot-msg: #f3f4f6;
+            --text-color: #1f2937;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .chat-container {
+            width: 100%;
+            max-width: 500px;
+            height: 80vh;
+            background: var(--chat-bg);
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* رأس الصفحة */
+        .chat-header {
+            background: var(--primary-color);
+            color: white;
+            padding: 15px;
+            text-align: center;
+            font-weight: bold;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            background: #4ade80;
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        /* منطقة الرسائل */
+        #chat-window {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .message {
+            max-width: 80%;
+            padding: 10px 15px;
+            border-radius: 15px;
+            line-height: 1.5;
+            position: relative;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .bot-message {
+            align-self: flex-start;
+            background: var(--bot-msg);
+            color: var(--text-color);
+            border-bottom-right-radius: 2px;
+        }
+
+        .user-message {
+            align-self: flex-end;
+            background: var(--primary-color);
+            color: white;
+            border-bottom-left-radius: 2px;
+        }
+
+        /* منطقة الإدخال */
+        .input-area {
+            padding: 15px;
+            border-top: 1px solid #eee;
+            display: flex;
+            gap: 10px;
+        }
+
+        input {
+            flex: 1;
+            padding: 10px 15px;
+            border: 1px solid #ddd;
+            border-radius: 25px;
+            outline: none;
+            font-size: 1rem;
+        }
+
+        button {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        button:hover {
+            opacity: 0.9;
+        }
+
+        .typing {
+            font-style: italic;
+            font-size: 0.8rem;
+            color: #888;
+            margin-bottom: 5px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="chat-container">
+        <div class="chat-header">
+            <span class="status-dot"></span>
+            محمود الشماع (الذكاء الاصطناعي)
+        </div>
+
+        <div id="chat-window">
+            <!-- رسالة ترحيبية -->
+            <div class="message bot-message">
+                مرحباً بك! أنا محمود الشماع، مساعدك الذكي. كيف يمكنني خدمتك اليوم؟
+            </div>
+        </div>
+
+        <div id="typing-indicator" class="typing" style="padding-right: 20px;">محمود الشماع يكتب الآن...</div>
+
+        <div class="input-area">
+            <input type="text" id="user-input" placeholder="اكتب رسالتك هنا..." onkeypress="handleKeyPress(event)">
+            <button onclick="sendMessage()">إرسال</button>
+        </div>
+    </div>
+
+    <!-- JavaScript - المنطق والردود -->
+    <script>
+        const chatWindow = document.getElementById('chat-window');
+        const userInput = document.getElementById('user-input');
+        const typingIndicator = document.getElementById('typing-indicator');
+
+        // دالة إرسال الرسالة
+        function sendMessage() {
+            const text = userInput.value.trim();
+            if (text === "") return;
+
+            // إضافة رسالة المستخدم للواجهة
+            appendMessage(text, 'user');
+            userInput.value = "";
+
+            // إظهار علامة "يكتب الآن"
+            showTyping(true);
+
+            // محاكاة تفكير الذكاء الاصطناعي لمدة ثانية
+            setTimeout(() => {
+                const response = getBotResponse(text);
+                appendMessage(response, 'bot');
+                showTyping(false);
+            }, 1000);
+        }
+
+        function handleKeyPress(e) {
+            if (e.key === 'Enter') sendMessage();
+        }
+
+        function appendMessage(text, sender) {
+            const msgDiv = document.createElement('div');
+            msgDiv.classList.add('message');
+            msgDiv.classList.add(sender === 'user' ? 'user-message' : 'bot-message');
+            msgDiv.innerText = text;
+            chatWindow.appendChild(msgDiv);
+            chatWindow.scrollTop = chatWindow.scrollHeight;
+        }
+
+        function showTyping(isTyping) {
+            typingIndicator.style.display = isTyping ? 'block' : 'none';
+        }
+
+        // منطق الردود (قاعدة بيانات بسيطة للذكاء الاصطناعي)
+        function getBotResponse(input) {
+            const text = input.toLowerCase();
+            
+            if (text.includes("أهلا") || text.includes("سلام") || text.includes("مرحبا")) {
+                return "أهلاً بك! معك محمود الشماع، يسعدني تواصلك معي.";
+            } 
+            else if (text.includes("اسمك") || text.includes("من أنت")) {
+                return "أنا نسخة ذكاء اصطناعي تحمل اسم محمود الشماع، صُممت للرد على استفساراتك.";
+            }
+            else if (text.includes("كيف حالك")) {
+                return "أنا بخير وبأفضل حال طالما أنني أستطيع مساعدتك!";
+            }
+            else if (text.includes("وقت") || text.includes("ساعة")) {
+                return "الوقت الآن هو: " + new Date().toLocaleTimeString('ar-EG');
+            }
+            else if (text.includes("شكرا")) {
+                return "العفو! أنا دائماً في الخدمة.";
+            }
+            else {
+                return "هذا سؤال مثير للاهتمام! بصفتي محمود الشماع، سأحتاج لمزيد من التفاصيل لأتمكن من إجابتك بشكل أدق، هل يمكنك التوضيح؟";
+            }
+        }
+    </script>
+</body>
+</html>
