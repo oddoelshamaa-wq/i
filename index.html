@@ -18,30 +18,20 @@
         body {
             background: radial-gradient(circle at center, #0a192f 0%, #020b1a 100%);
             height: 100vh; display: flex; justify-content: center; align-items: center;
-            font-family: 'Segoe UI', Tahoma, sans-serif; overflow: hidden; perspective: 1000px;
+            font-family: 'Segoe UI', Tahoma, sans-serif; overflow: hidden;
         }
 
-        /* تأثير الخلفية المتحركة */
-        .bg-glow {
-            position: absolute; width: 100%; height: 100%; z-index: -1;
-            background: repeating-conic-gradient(from 0deg, #020b1a 0deg 20deg, #051630 20deg 40deg);
-            opacity: 0.3; animation: rotateBg 40s linear infinite;
-        }
-        @keyframes rotateBg { from { transform: rotate(0deg) scale(1.5); } to { transform: rotate(360deg) scale(1.5); } }
-
-        /* حاوية الشات 3D */
         .chat-card {
             width: 95%; max-width: 500px; height: 92vh;
             background: rgba(10, 25, 47, 0.75); backdrop-filter: blur(20px);
             border-radius: 40px; border: 1.5px solid rgba(0, 242, 254, 0.3);
-            display: flex; flex-direction: column; transform-style: preserve-3d;
+            display: flex; flex-direction: column;
             box-shadow: 0 25px 50px rgba(0,0,0,0.5);
         }
 
         .header {
             padding: 20px; text-align: center; color: var(--cyan);
             font-size: 1.4rem; font-weight: bold; border-bottom: 1px solid rgba(0, 242, 254, 0.2);
-            text-shadow: 0 0 10px var(--cyan);
         }
 
         #chat-window {
@@ -56,8 +46,7 @@
         .avatar {
             width: 40px; height: 40px; border-radius: 12px;
             display: flex; align-items: center; justify-content: center;
-            font-weight: bold; flex-shrink: 0; font-size: 0.9rem;
-            box-shadow: 0 0 15px rgba(0, 242, 254, 0.2);
+            font-weight: bold; flex-shrink: 0;
         }
         .bot-avatar { background: var(--cyan); color: #000; }
         .user-avatar { background: var(--purple); color: #fff; }
@@ -65,11 +54,10 @@
         .bubble {
             background: var(--glass); padding: 15px; border-radius: 20px;
             border: 1px solid rgba(0, 242, 254, 0.2); max-width: 80%;
-            color: #fff; line-height: 1.6; font-size: 1rem;
+            color: #fff; line-height: 1.6;
         }
         .bubble b { color: var(--cyan); }
 
-        /* صندوق الإدخال */
         .input-box { padding: 20px; }
         .pill {
             background: rgba(255,255,255,0.05); border: 1.5px solid var(--cyan);
@@ -77,63 +65,133 @@
         }
         input {
             flex: 1; background: transparent; border: none; color: white;
-            outline: none; font-size: 1rem; text-align: right; padding: 10px;
+            outline: none; font-size: 1rem; text-align: right;
         }
         .send-btn {
             background: #fff; color: #000; width: 38px; height: 38px;
             border-radius: 50%; display: flex; align-items: center; justify-content: center;
-            cursor: pointer; transition: 0.3s;
+            cursor: pointer;
         }
-        .send-btn:hover { background: var(--cyan); transform: scale(1.1); }
 
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        
-        @media (max-width: 600px) { .chat-card { width: 100%; height: 100vh; border-radius: 0; } }
     </style>
 </head>
 <body>
 
-    <div class="bg-glow"></div>
-
-    <div class="chat-card" id="card">
+    <div class="chat-card">
         <div class="header">ChatGPT <i class="fa-solid fa-bolt"></i></div>
         <div id="chat-window">
             <div class="msg bot-msg">
                 <div class="avatar bot-avatar">MS</div>
-                <div class="bubble">مرحباً بك! أنا <b>محمود الشماع</b>. لقد تم تحديث ذكائي ليفهمك حتى لو أخطأت في الكتابة. اسألني عن أي شيء وسأجيبك فوراً!</div>
+                <div class="bubble">أهلاً بك! أنا <b>محمود الشماع</b>. لقد قمت بتحسين ذكائي الآن ليفهم حتى الأخطاء الإملائية مثل (صوره بدل سورة). اسألني!</div>
             </div>
         </div>
         <div class="input-box">
             <div class="pill">
                 <i class="fa-solid fa-magic-wand-sparkles" style="color: var(--cyan);"></i>
-                <input type="text" id="user-input" placeholder="اسألني أي سؤال ثقافي أو علمي..." onkeypress="if(event.key==='Enter') send()">
+                <input type="text" id="user-input" placeholder="اكتب سؤالك هنا..." onkeypress="if(event.key==='Enter') send()">
                 <div class="send-btn" onclick="send()"><i class="fa-solid fa-arrow-up"></i></div>
             </div>
         </div>
     </div>
 
     <script>
-        const card = document.getElementById('card');
         const chatWindow = document.getElementById('chat-window');
         const userInput = document.getElementById('user-input');
 
-        // تأثير 3D خفيف
-        document.addEventListener('mousemove', (e) => {
-            if(window.innerWidth > 1024) {
-                let x = (window.innerWidth / 2 - e.pageX) / 50;
-                let y = (window.innerHeight / 2 - e.pageY) / 50;
-                card.style.transform = `rotateY(${x}deg) rotateX(${y}deg)`;
-            }
-        });
+        // قاعدة البيانات الموسعة
+        const knowledgeBase = [
+            // القرآن والسور
+            { keys: ["سورة", "سوره", "قران", "البقره", "البقرة", "السوره", "السورة"], ans: "أطول سورة في القرآن الكريم هي <b>سورة البقرة</b> وعدد آياتها 286 آية.", label: "أطول سورة" },
+            { keys: ["اقصر", "اصغر", "اقل"], ans: "أقصر سورة في القرآن الكريم هي <b>سورة الكوثر</b>.", label: "أقصر سورة" },
+            { keys: ["الحديد", "حديد"], ans: "سورة الحديد عدد آياتها 29 آية.", label: "سورة الحديد" },
+            
+            // العلماء والمخترعون
+            { keys: ["اديسون", "المصباح", "مخترع", "مصباح", "الكم"], ans: "مخترع المصباح الكهربائي هو العالم <b>توماس إديسون</b>.", label: "مخترع المصباح" },
+            { keys: ["اينشتاين", "النسبية", "الذرة"], ans: "أبو النسبية هو العالم <b>ألبرت أينشتاين</b>.", label: "أينشتاين" },
+            { keys: ["نيوتن", "الجاذبية", "الثقل"], ans: "اكتشف قانون الجاذبية العالم <b>إسحاق نيوتن</b>.", label: "نيوتن" },
+            { keys: ["ابن سينا", "الطب", "طبيب"], ans: "أبو الطب الحديث هو <b>ابن سينا</b> في كتابه القانون.", label: "ابن سينا" },
+            { keys: [" الخوارزمي", "الرياضيات", "حساب", "الجبر"], ans: "أبو الجبر هو <b>الخوارزمي</b>.", label: "الخوارزمي" },
+            
+            // الفضاء والكواكب
+            { keys: ["المريخ", "الكوكب الاحمر", "المريخ", "المرخ"], ans: "الكوكب الأحمر هو كوكب <b>المريخ</b>.", label: "الكوكب الأحمر" },
+            { keys: ["الارض", "الأرض", "ارض"], ans: "كوكب <b>الأرض</b> هو ثالث كواكب المجموعة الشمسية.", label: "كوكب الأرض" },
+            { keys: ["الشمس", "نجم"], ans: "<b>الشمس</b> هو نجم في مركز المجموعة الشمسية.", label: "الشمس" },
+            { keys: ["القمر", "قمر"], ans: "<b>القمر</b> هو قمر الأرض الوحيد.", label: "القمر" },
+            
+            // الأنهار والبلدان
+            { keys: ["النيل", "اطول نهر", "افisman"], ans: "أطول نهر في العالم هو <b>نهر النيل</b>.", label: "أطول نهر" },
+            { keys: ["amazon", "امازون"], ans: "أطول نهر في أمريكا الجنوبية هو <b>الأمازون</b>.", label: "نهر الأمازون" },
+            { keys: ["مصر", "اهرام", "اهرام"], ans: "عاصمة مصر هي <b>القاهرة</b> وأشهر معالمها الأهرامات.", label: "مصر" },
+            { keys: ["السعودية", "مكه", "مكة"], ans: "عاصمة السعودية هي <b>الرياض</b> وأقدس مدنها مكة المكرمة.", label: "السعودية" },
+            
+            // الحيوانات
+            { keys: ["اطول", "اكبر", "اضخم", "حيوان"], ans: "أكبر حيوان على الأرض هو <b>الحوت الأزرق</b>.", label: "أكبر حيوان" },
+            { keys: ["سريع", "اسرع", "سرعة"], ans: "أسرع حيوان هو <b>الفهد</b>.", label: "أسرع حيوان" },
+            
+            // معلومات عامة
+            { keys: ["عدد", "البلدان", "دول"], ans: "عدد دول العالم المعترف بها هو <b>195 دولة</b>.", label: "عدد الدول" },
+            { keys: ["المحيط", "اكبر", "ماء"], ans: "أكبر محيط هو <b>المحيط الهادئ</b>.", label: "أكبر محيط" },
+            { keys: ["الجبال", "اطول جبل", "اورست"], ans: "أعلى جبل في العالم هو <b>جبل إيفرست</b> بارتفاع 8848 متر.", label: "أعلى جبل" }
+        ];
 
-        // دالة تنظيف النص (لفهم الكلام حتى لو مكتوب غلط)
-        function normalize(text) {
+        // دالة التنظيف العميق (Deep Normalize)
+        // تقوم بتبديل الحروف المتشابهة لتسهيل المقارنة
+        function deepNormalize(text) {
             return text.toLowerCase()
-                .replace(/[أإآ]/g, 'ا')
-                .replace(/ة/g, 'ه')
-                .replace(/ى/g, 'ي')
-                .replace(/[\u064B-\u0652]/g, "") // إزالة التشكيل
+                // توحيد الحروف المتشابهة
+                .replace(/[أإآ]/g, 'ا')       // الألف المقصورة والهمزة
+                .replace(/ة/g, 'ه')           // التاء المربوطة -> هاء
+                .replace(/ى/g, 'ي')           // الياء المقصورة
+                .replace(/ص/g, 'س')           // الصاد -> سين
+                .replace(/ط/g, 'ت')           // الطاء -> تاء
+                .replace(/ظ/g, 'ز')           // الظاء -> زاي
+                .replace(/ض/g, 'د')           // الضاد -> دال
+                .replace(/ق/g, 'ك')           // القاف -> كاف
+                .replace(/ف/g, 'ب')           // الفاء -> باء (بعض الكتابات)
+                .replace(/غ/g, 'ع')           // الغين -> عين
+                .replace(/ؤ/g, 'ا')           // الهمزة المتوسطة
+                .replace(/ئ/g, 'ي')           // الهمزة المتطرفة
+                // إزالة التشكيل
+                .replace(/[\u064B-\u0652]/g, "")
+                // إزالة المسافات الزائدة
+                .replace(/\s+/g, ' ')
                 .trim();
+        }
+
+        // قاموس التصحيح الإملائي الشائع
+        const commonCorrections = {
+            "سوره": "سورة",
+            "صوره": "سورة",
+            "سره": "سورة",
+            "صور": "سورة",
+            "القران": "القرآن",
+            "قرآن": "قرآن",
+            "الاديسون": "إديسون",
+            "اديسون": "إديسون",
+            "المريخ": "المريخ",
+            "المرخ": "المريخ",
+            "نيوتن": "نيوتن",
+            "اينشتاين": "أينشتاين",
+            "ابن سينا": "ابن سينا",
+            "الخوارزمي": "الخوارزمي",
+            "النيل": "النيل",
+            "الامازون": "الأمازون",
+            "امازون": "أمازون",
+            "الفهد": "الفهد",
+            "الحوت": "الحوت",
+            "اورست": "إيفرست",
+            "افريتا": "إيفرست"
+        };
+
+        // دالة تصحيح الأخطاء الإملائية
+        function correctSpelling(text) {
+            let corrected = text;
+            for (const [wrong, right] of Object.entries(commonCorrections)) {
+                const regex = new RegExp(wrong, 'gi');
+                corrected = corrected.replace(regex, right);
+            }
+            return corrected;
         }
 
         function send() {
@@ -141,7 +199,11 @@
             if(!val) return;
             appendMsg(val, 'user');
             userInput.value = "";
-            setTimeout(() => { appendMsg(getAIResponse(val), 'bot'); }, 600);
+            
+            setTimeout(() => {
+                const response = getSmartResponse(val);
+                appendMsg(response, 'bot');
+            }, 600);
         }
 
         function appendMsg(text, sender) {
@@ -152,35 +214,43 @@
             chatWindow.scrollTop = chatWindow.scrollHeight;
         }
 
-        function getAIResponse(input) {
-            const s = normalize(input);
+        function getSmartResponse(input) {
+            // تصحيح الأخطاء الإملائية أولاً
+            const correctedInput = correctSpelling(input);
+            
+            const normalizedInput = deepNormalize(correctedInput);
+            
+            // 1. البحث عن الكلمات المفتاحية بعد التنظيف العميق
+            for (const item of knowledgeBase) {
+                for (const key of item.keys) {
+                    const normKey = deepNormalize(key);
+                    if (normalizedInput.includes(normKey)) {
+                        // إذا كان هناك تصحيح، نخبر المستخدم
+                        if (correctedInput !== input) {
+                            return `اقصدت: "${correctedInput}"؟ ${item.ans}`;
+                        }
+                        return item.ans;
+                    }
+                }
+            }
 
-            // --- إجابات الصور الجديدة (مع خاصية الفهم الذكي) ---
-            if (s.includes("اطول سوره")) return "<b>الإجابة: سورة البقرة.</b> وهي أطول سورة في القرآن الكريم وتضم 286 آية.";
-            if (s.includes("مخترع المصباح") || s.includes("اديسون")) return "<b>الإجابة: توماس إديسون.</b> هو العالم الذي أضاء العالم باختراعه للمصباح الكهربائي المتوهج.";
-            if (s.includes("اضخم حيوان") || s.includes("الحوت الازرق")) return "<b>الإجابة: الحوت الأزرق.</b> يُعتبر أضخم كائن حي عاش على وجه الأرض، حيث يصل طوله لأكثر من 30 متراً.";
-            if (s.includes("صعد الى الفضاء") || s.includes("غاغارين")) return "<b>الإجابة: يوري غاغارين.</b> رائد فضاء سوفيتي كان أول إنسان يخرج إلى الفضاء الخارجي عام 1961.";
-            if (s.includes("ارض الاهرامات") || s.includes("مصر")) return "<b>الإجابة: جمهورية مصر العربية.</b> تشتهر بوجود أهرامات الجيزة التي تعد من عجائب الدنيا السبع.";
-            if (s.includes("روايه البؤساء") || s.includes("فيكتور هوغو")) return "<b>الإجابة: فيكتور هوغو.</b> هو الأديب الفرنسي الشهير الذي كتب هذه الرواية الملحمية.";
-            if (s.includes("اطول برج") || s.includes("خليفه")) return "<b>الإجابة: برج خليفة في دبي.</b> يبلغ ارتفاعه 828 متراً وهو أطول بناء شيده الإنسان.";
-            if (s.includes("الفاروق") || s.includes("عمر بن الخطاب")) return "<b>الإجابة: الصحابي عمر بن الخطاب رضي الله عنه.</b> لُقب بالفاروق لأنه فرق بين الحق والباطل.";
-            if (s.includes("يفصل بين قاره اوروبا وافريقيا") || s.includes("البحر المتوسط")) return "<b>الإجابة: البحر الأبيض المتوسط.</b> هو البحر الذي يربط القارات الثلاث القديمة.";
-            if (s.includes("عمله قطر") || s.includes("ريال قطري")) return "<b>الإجابة: الريال القطري.</b> هو العملة الرسمية المتداولة في دولة قطر.";
-            if (s.includes("النبي الذي ابتلعه الحوت") || s.includes("يونس")) return "<b>الإجابة: النبي يونس عليه السلام.</b> مكث في بطن الحوت وكان يسبح الله حتى أخرجه الله.";
+            // 2. إذا لم يجد تطابقاً تاماً، يبحث عن "أطول" و "سورة" حتى لو مكتوبة غلط
+            if (normalizedInput.includes("اطول") && (normalizedInput.includes("سوره") || normalizedInput.includes("سره") || normalizedInput.includes("سور") || normalizedInput.includes("صور"))) {
+                return "تقصد أطول سورة في القرآن؟ الإجابة هي <b>سورة البقرة</b>.";
+            }
 
-            // --- إجابات الصور السابقة ---
-            if (s.includes("الكوكب الاحمر") || s.includes("المريخ")) return "<b>ج: كوكب المريخ.</b>";
-            if (s.includes("اطول نهر") || s.includes("النيل")) return "<b>ج: نهر النيل.</b>";
-            if (s.includes("يضخ الدم") || s.includes("القلب")) return "<b>ج: القلب.</b>";
-            if (s.includes("اكبر قاره") || s.includes("اسيا")) return "<b>ج: قارة آسيا.</b>";
-            if (s.includes("غاز") && s.includes("وفره")) return "<b>ج: النيتروجين.</b>";
-            if (s.includes("سفينه الصحراء") || s.includes("جمل")) return "<b>ج: الجمل.</b>";
-            if (s.includes("يمشي بلا قدمين") || s.includes("سحاب")) return "<b>ج: السحاب/الغيوم.</b>";
-            if (s.includes("ملك الغابه") || s.includes("اسد")) return "<b>ج: الأسد.</b>";
-            if (s.includes("قلب القران") || s.includes("يس")) return "<b>ج: سورة يس.</b>";
+            // 3. محاولة البحث بدون تصحيح إذا فشل مع التصحيح
+            const rawNormalized = deepNormalize(input);
+            for (const item of knowledgeBase) {
+                for (const key of item.keys) {
+                    const normKey = deepNormalize(key);
+                    if (rawNormalized.includes(normKey)) {
+                        return item.ans;
+                    }
+                }
+            }
 
-            // رد افتراضي ذكي
-            return `بصفتي <b>محمود الشماع</b>، أجد سؤالك بخصوص "<b>${input}</b>" ذكياً جداً. هل تود أن أعطيك تفاصيل أكثر حول هذا الموضوع من وجهة نظر تقنية أو ثقافية؟`;
+            return `بصفتي <b>محمود الشماع</b>، لم أفهم تماماً ما تقصده "${input}". اسألني عن القرآن، العلوم، التاريخ، أو الجغرافيا!`;
         }
     </script>
 </body>
