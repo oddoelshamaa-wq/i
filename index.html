@@ -3,228 +3,265 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>شات محمود الشماع الذكي</title>
-    <!-- CSS - التصميم -->
+    <title>محمود الشماع | تجربة 3D فائقة</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
+        /* إعدادات الألوان المتوهجة */
         :root {
-            --primary-color: #2563eb;
-            --bg-color: #f3f4f6;
-            --chat-bg: #ffffff;
-            --user-msg: #dbeafe;
-            --bot-msg: #f3f4f6;
-            --text-color: #1f2937;
+            --neon-blue: #00f2fe;
+            --neon-purple: #7000ff;
+            --bg-dark: #050505;
+            --glass: rgba(255, 255, 255, 0.05);
+            --gpt-green: #10a37f;
         }
 
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: var(--bg-color);
-            margin: 0;
+        body, html {
+            margin: 0; padding: 0; height: 100%;
+            background-color: var(--bg-dark);
+            color: white;
+            font-family: 'Segoe UI', sans-serif;
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
-        }
-
-        .chat-container {
-            width: 100%;
-            max-width: 500px;
-            height: 80vh;
-            background: var(--chat-bg);
-            border-radius: 15px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-            display: flex;
-            flex-direction: column;
             overflow: hidden;
+            perspective: 1500px; /* للتحكم في عمق الـ 3D */
         }
 
-        /* رأس الصفحة */
-        .chat-header {
-            background: var(--primary-color);
-            color: white;
-            padding: 15px;
-            text-align: center;
-            font-weight: bold;
-            font-size: 1.2rem;
+        /* خدعة بصرية خلفية (نفق متحرك) */
+        .illusion-bg {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: 
+                radial-gradient(circle at center, transparent 0%, var(--bg-dark) 70%),
+                repeating-conic-gradient(from 0deg, #111 0deg 10deg, #000 10deg 20deg);
+            background-size: 100% 100%, 50px 50px;
+            animation: tunnelRotate 20s linear infinite;
+            z-index: -1;
+            opacity: 0.5;
+        }
+
+        @keyframes tunnelRotate {
+            from { transform: scale(1) rotate(0deg); }
+            to { transform: scale(1.5) rotate(360deg); }
+        }
+
+        /* حاوية الشات ثلاثية الأبعاد (تتحرك مع الماوس) */
+        .main-3d-container {
+            width: 90%;
+            max-width: 1000px;
+            height: 80vh;
+            background: var(--glass);
+            backdrop-filter: blur(20px);
+            border-radius: 30px;
+            border: 1px solid rgba(255,255,255,0.1);
             display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
+            box-shadow: 0 50px 100px rgba(0,0,0,0.8), 
+                        inset 0 0 20px rgba(255,255,255,0.05);
+            transform-style: preserve-3d;
+            transition: transform 0.1s ease-out;
+            position: relative;
         }
 
-        .status-dot {
-            width: 10px;
-            height: 10px;
-            background: #4ade80;
-            border-radius: 50%;
-            display: inline-block;
-        }
-
-        /* منطقة الرسائل */
-        #chat-window {
-            flex: 1;
+        /* القائمة الجانبية (Sidebar) */
+        .sidebar {
+            width: 260px;
+            background: rgba(0,0,0,0.3);
+            border-left: 1px solid rgba(255,255,255,0.05);
             padding: 20px;
-            overflow-y: auto;
+            border-radius: 0 30px 30px 0;
             display: flex;
             flex-direction: column;
-            gap: 15px;
+            transform: translateZ(50px); /* دفع العناصر للأمام */
         }
 
-        .message {
-            max-width: 80%;
-            padding: 10px 15px;
-            border-radius: 15px;
-            line-height: 1.5;
-            position: relative;
-            animation: fadeIn 0.3s ease;
+        .new-chat {
+            background: linear-gradient(45deg, var(--neon-blue), var(--neon-purple));
+            padding: 12px; border-radius: 12px; text-align: center;
+            cursor: pointer; font-weight: bold; border: none; color: white;
+            box-shadow: 0 5px 15px rgba(0, 242, 254, 0.3);
         }
 
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .bot-message {
-            align-self: flex-start;
-            background: var(--bot-msg);
-            color: var(--text-color);
-            border-bottom-right-radius: 2px;
-        }
-
-        .user-message {
-            align-self: flex-end;
-            background: var(--primary-color);
-            color: white;
-            border-bottom-left-radius: 2px;
-        }
-
-        /* منطقة الإدخال */
-        .input-area {
-            padding: 15px;
-            border-top: 1px solid #eee;
+        /* منطقة الشات الرئيسية */
+        .chat-content {
+            flex: 1;
             display: flex;
-            gap: 10px;
+            flex-direction: column;
+            position: relative;
+            transform: translateZ(30px);
+        }
+
+        #chat-stream {
+            flex: 1; padding: 30px; overflow-y: auto;
+            mask-image: linear-gradient(to bottom, transparent, black 10%, black 90%, transparent);
+        }
+
+        .msg-row {
+            margin-bottom: 25px;
+            display: flex; gap: 15px;
+            animation: slideIn 0.5s ease;
+        }
+
+        @keyframes slideIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+        .avatar {
+            width: 40px; height: 40px; border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            font-weight: bold; box-shadow: 0 0 15px rgba(255,255,255,0.1);
+        }
+        .u-avatar { background: var(--neon-purple); }
+        .b-avatar { background: var(--gpt-green); }
+
+        .bubble {
+            background: rgba(255,255,255,0.07);
+            padding: 15px 20px; border-radius: 20px;
+            max-width: 80%; line-height: 1.6;
+            border: 1px solid rgba(255,255,255,0.05);
+            position: relative;
+            box-shadow: 5px 5px 15px rgba(0,0,0,0.2);
+        }
+
+        /* صندوق الإدخال العائم */
+        .input-area {
+            padding: 30px; display: flex; justify-content: center;
+        }
+
+        .input-box {
+            width: 90%; background: rgba(255,255,255,0.1);
+            border-radius: 50px; padding: 10px 25px;
+            display: flex; align-items: center; gap: 15px;
+            border: 1px solid rgba(255,255,255,0.1);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            transform: translateZ(70px);
         }
 
         input {
-            flex: 1;
-            padding: 10px 15px;
-            border: 1px solid #ddd;
-            border-radius: 25px;
-            outline: none;
-            font-size: 1rem;
+            flex: 1; background: transparent; border: none;
+            color: white; outline: none; font-size: 1.1rem;
         }
 
-        button {
-            background: var(--primary-color);
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 25px;
-            cursor: pointer;
-            transition: 0.3s;
+        .send-circle {
+            background: white; color: black; width: 40px; height: 40px;
+            border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            cursor: pointer; transition: 0.3s;
         }
 
-        button:hover {
-            opacity: 0.9;
-        }
+        .send-circle:hover { transform: rotate(15deg) scale(1.1); background: var(--neon-blue); }
 
-        .typing {
-            font-style: italic;
-            font-size: 0.8rem;
-            color: #888;
-            margin-bottom: 5px;
-            display: none;
-        }
+        /* سكرول بار */
+        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar-thumb { background: var(--neon-blue); border-radius: 10px; }
+
     </style>
 </head>
 <body>
 
-    <div class="chat-container">
-        <div class="chat-header">
-            <span class="status-dot"></span>
-            محمود الشماع (الذكاء الاصطناعي)
+    <!-- الخلفية الخادعة بصرياً -->
+    <div class="illusion-bg"></div>
+
+    <!-- حاوية الـ 3D الرئيسية -->
+    <div class="main-3d-container" id="container3d">
+        <!-- القائمة الجانبية -->
+        <div class="sidebar">
+            <button class="new-chat" onclick="location.reload()">+ محادثة جديدة</button>
+            <p style="margin-top: 20px; color: #888; font-size: 0.8rem; text-align: center;">محمود الشماع 3D AI</p>
+            <div style="margin-top: auto; font-size: 0.7rem; color: var(--neon-blue);">تحرك بالماوس لرؤية البعد الثالث</div>
         </div>
 
-        <div id="chat-window">
-            <!-- رسالة ترحيبية -->
-            <div class="message bot-message">
-                مرحباً بك! أنا محمود الشماع، مساعدك الذكي. كيف يمكنني خدمتك اليوم؟
+        <!-- الشات -->
+        <div class="chat-content">
+            <div style="padding: 20px; text-align: center; font-weight: bold; font-size: 1.2rem; color: var(--neon-blue);">
+                محمود الشماع GPT 3.5 
             </div>
-        </div>
 
-        <div id="typing-indicator" class="typing" style="padding-right: 20px;">محمود الشماع يكتب الآن...</div>
+            <div id="chat-stream">
+                <div class="msg-row">
+                    <div class="avatar b-avatar">MS</div>
+                    <div class="bubble">مرحباً بك في عالم محمود الشماع ثلاثي الأبعاد. أنا هنا للرد على كل تساؤلاتك بذكاء ودقة متناهية. جرب تحريك الماوس لترى قوة التصميم!</div>
+                </div>
+            </div>
 
-        <div class="input-area">
-            <input type="text" id="user-input" placeholder="اكتب رسالتك هنا..." onkeypress="handleKeyPress(event)">
-            <button onclick="sendMessage()">إرسال</button>
+            <div class="input-area">
+                <div class="input-box">
+                    <i class="fa-solid fa-wand-magic-sparkles" style="color: var(--neon-blue);"></i>
+                    <input type="text" id="user-input" placeholder="اسألني عن أي شيء..." onkeypress="if(event.key==='Enter') sendMessage()">
+                    <div class="send-circle" onclick="sendMessage()"><i class="fa-solid fa-arrow-up"></i></div>
+                </div>
+            </div>
         </div>
     </div>
 
-    <!-- JavaScript - المنطق والردود -->
     <script>
-        const chatWindow = document.getElementById('chat-window');
+        const container = document.getElementById('container3d');
+        const chatStream = document.getElementById('chat-stream');
         const userInput = document.getElementById('user-input');
-        const typingIndicator = document.getElementById('typing-indicator');
 
-        // دالة إرسال الرسالة
+        // --- تأثير الـ 3D Tilt الحركي ---
+        document.addEventListener('mousemove', (e) => {
+            let xAxis = (window.innerWidth / 2 - e.pageX) / 25;
+            let yAxis = (window.innerHeight / 2 - e.pageY) / 25;
+            container.style.transform = `rotateY(${xAxis}deg) rotateX(${yAxis}deg)`;
+        });
+
+        // إعادة المركز عند خروج الماوس
+        document.addEventListener('mouseleave', () => {
+            container.style.transform = `rotateY(0deg) rotateX(0deg)`;
+        });
+
+        // --- منطق الشات (محمود الشماع) ---
         function sendMessage() {
-            const text = userInput.value.trim();
-            if (text === "") return;
+            const val = userInput.value.trim();
+            if(!val) return;
 
-            // إضافة رسالة المستخدم للواجهة
-            appendMessage(text, 'user');
+            appendMessage(val, 'user');
             userInput.value = "";
 
-            // إظهار علامة "يكتب الآن"
-            showTyping(true);
-
-            // محاكاة تفكير الذكاء الاصطناعي لمدة ثانية
             setTimeout(() => {
-                const response = getBotResponse(text);
-                appendMessage(response, 'bot');
-                showTyping(false);
-            }, 1000);
-        }
-
-        function handleKeyPress(e) {
-            if (e.key === 'Enter') sendMessage();
+                const reply = getAdvancedReply(val);
+                appendMessage(reply, 'bot');
+            }, 800);
         }
 
         function appendMessage(text, sender) {
-            const msgDiv = document.createElement('div');
-            msgDiv.classList.add('message');
-            msgDiv.classList.add(sender === 'user' ? 'user-message' : 'bot-message');
-            msgDiv.innerText = text;
-            chatWindow.appendChild(msgDiv);
-            chatWindow.scrollTop = chatWindow.scrollHeight;
+            const row = document.createElement('div');
+            row.className = 'msg-row';
+            row.innerHTML = `
+                <div class="avatar ${sender === 'user' ? 'u-avatar' : 'b-avatar'}">${sender === 'user' ? 'U' : 'MS'}</div>
+                <div class="bubble">${text}</div>
+            `;
+            chatStream.appendChild(row);
+            chatStream.scrollTop = chatStream.scrollHeight;
         }
 
-        function showTyping(isTyping) {
-            typingIndicator.style.display = isTyping ? 'block' : 'none';
-        }
-
-        // منطق الردود (قاعدة بيانات بسيطة للذكاء الاصطناعي)
-        function getBotResponse(input) {
-            const text = input.toLowerCase();
+        function getAdvancedReply(input) {
+            const t = input.toLowerCase();
             
-            if (text.includes("أهلا") || text.includes("سلام") || text.includes("مرحبا")) {
-                return "أهلاً بك! معك محمود الشماع، يسعدني تواصلك معي.";
-            } 
-            else if (text.includes("اسمك") || text.includes("من أنت")) {
-                return "أنا نسخة ذكاء اصطناعي تحمل اسم محمود الشماع، صُممت للرد على استفساراتك.";
+            // ردود ذكية جداً (GPT-3.5 Style)
+            if (t.includes("أذكار") || t.includes("اذكار")) {
+                return `بكل سرور. الأذكار هي حصن المسلم وطمأنينة لقلبه. إليك أهم ما يمكنك البدء به وفقاً لما نص عليه الشرع الحنيف:<br><br>
+                1. <b>آية الكرسي:</b> تقرأ بعد كل صلاة وفي الصباح والمساء للحفظ.<br>
+                2. <b>سيد الاستغفار:</b> "اللهم أنت ربي لا إله إلا أنت.." وهو من أعظم الأذكار.<br><br>
+                بصفتي <b>محمود الشماع</b>، أنصحك بجعل لسانك رطباً بذكر الله دائماً. هل تود أن أعرض لك أذكاراً محددة؟`;
             }
-            else if (text.includes("كيف حالك")) {
-                return "أنا بخير وبأفضل حال طالما أنني أستطيع مساعدتك!";
+
+            if (t.includes("من أنت") || t.includes("من انت")) {
+                return `أنا <b>محمود الشماع</b>، نموذج ذكاء اصطناعي فائق التطور مصمم بواجهة ثلاثية الأبعاد خادعة للبصر.<br><br>
+                مهمتي هي تقديم الدعم لك في مجالات الدين، التقنية، والعلوم العامة بأسلوب منطقي ومفصل. كما ترى، أنا أجمع بين قوة المعالجة وجمال التصميم.`;
             }
-            else if (text.includes("وقت") || text.includes("ساعة")) {
-                return "الوقت الآن هو: " + new Date().toLocaleTimeString('ar-EG');
+
+            if (t.includes("برمجة") || t.includes("كود")) {
+                return `البرمجة هي لغة بناء المستقبل. الموقع الذي تتصفحه الآن هو نتاج دمج لغات البرمجة الحديثة:<br><br>
+                - <b>HTML:</b> للهيكلية.<br>
+                - <b>CSS:</b> لتأثيرات الـ 3D والخداع البصري.<br>
+                - <b>JavaScript:</b> للذكاء والتفاعل الحركي.<br><br>
+                هل تريدني أن أشرح لك كيف قمت ببناء تأثير الميلان (Tilt Effect) في هذا الشات؟`;
             }
-            else if (text.includes("شكرا")) {
-                return "العفو! أنا دائماً في الخدمة.";
-            }
-            else {
-                return "هذا سؤال مثير للاهتمام! بصفتي محمود الشماع، سأحتاج لمزيد من التفاصيل لأتمكن من إجابتك بشكل أدق، هل يمكنك التوضيح؟";
-            }
+
+            // الرد الشامل لأي سؤال آخر
+            return `شكراً لسؤالك حول "<b>${input}</b>". بصفتي محمود الشماع، المساعد الذكي، إليك تحليلي المفصل لهذا الاستفسار:<br><br>
+            من الناحية الجوهرية، يتطلب هذا الموضوع فهماً دقيقاً للسياق. يمكننا تقسيم الإجابة إلى جانبين:<br>
+            - <b>الجانب الأول:</b> التأثير المباشر لهذا الأمر على الواقع المحيط.<br>
+            - <b>الجانب الثاني:</b> كيفية تطوير هذا المفهوم مستقبلاً.<br><br>
+            أنا هنا لمتابعة الحوار معك، هل ترغب في معرفة المزيد من التفاصيل حول هذا الموضوع؟`;
         }
     </script>
 </body>
