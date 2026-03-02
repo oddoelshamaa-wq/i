@@ -84,6 +84,19 @@
         .msg-user { background: rgba(0, 242, 254, 0.1); border-right: 3px solid var(--cyan); }
         .msg-admin { background: rgba(112, 0, 255, 0.1); border-right: 3px solid var(--purple); text-align: left; }
 
+        /* avatars within chat history */
+        .avatar {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            overflow: hidden;
+            display: inline-block;
+            vertical-align: middle;
+            margin-right: 6px;
+        }
+        .admin-avatar img { width: 100%; height: 100%; object-fit: cover; }
+        .user-avatar { background: var(--cyan); color: #000; display:flex;justify-content:center;align-items:center;font-size:0.8rem; }
+
         .reply-box {
             display: flex;
             gap: 10px;
@@ -179,8 +192,16 @@
                 if (session.messages) {
                     Object.values(session.messages).forEach(m => {
                         const typeClass = m.sender === 'user' ? 'msg-user' : 'msg-admin';
+                        let avatar = '';
+                        if (m.sender === 'user') {
+                            avatar = '<span class="avatar user-avatar">U</span>';
+                        } else {
+                            // استخدم صورتك الشخصية
+                            avatar = '<span class="avatar admin-avatar"><img src="2a4eacaa-60f3-4058-98dd-25e0cb764bad.jpg" alt="أنت"></span>';
+                        }
                         chatHtml += `
                             <div class="msg-line ${typeClass}">
+                                ${avatar}
                                 <b>${m.sender === 'user' ? 'الزائر' : 'أنت'}:</b> ${m.text}
                                 <div style="font-size:0.6rem; opacity:0.5">${m.time || ''}</div>
                             </div>
