@@ -211,7 +211,7 @@
         <div id="chat-window">
             <div class="msg bot-msg">
                 <div class="avatar bot-avatar"><img src="2a4eacaa-60f3-4058-98dd-25e0cb764bad.jpg" alt="صورتك"></div>
-                <div class="bubble">أهلاً بك! أنا <b>محمود الشماع</b>.  اسألني يا صاحبي </div>
+                <div class="bubble">أهلاً بك! أنا <b>محمود الشماع</b>.  اسألني ياصحبي</div>
             </div>
         </div>
         <div class="input-box">
@@ -259,7 +259,8 @@
                     name: userName,
                     device: navigator.userAgent.includes('Mobile') ? "موبايل" : "كمبيوتر",
                     time: new Date().toLocaleString('ar-EG'),
-                    needsSupport: false
+                    needsSupport: false,
+                    isOnline: true  // تسجيل أن الزائر متصل الآن
                 }).catch(err => console.log("⚠️ Error creating session:", err));
             }
 
@@ -282,6 +283,15 @@
                     }
                 });
             }
+
+            // تسجيل مغادرة الزائر عند إغلاق الصفحة أو إغلاق الشات
+            window.addEventListener('beforeunload', () => {
+                if (database && currentUserId) {
+                    database.ref('sessions/' + currentUserId).update({
+                        isOnline: false
+                    });
+                }
+            });
         }
 
         const chatWindow = document.getElementById('chat-window');
