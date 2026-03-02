@@ -49,6 +49,13 @@
             font-weight: bold; flex-shrink: 0;
         }
         .bot-avatar { background: var(--cyan); color: #000; }
+        /* image inside avatar should fill container */
+        .avatar img {
+            width: 100%;
+            height: 100%;
+            border-radius: 12px;
+            object-fit: cover;
+        }
         .user-avatar { background: var(--purple); color: #fff; }
 
         .bubble {
@@ -82,7 +89,7 @@
         <div class="header">ChatGPT - Mahmoud elshamaa<i class="fa-solid fa-bolt"></i></div>
         <div id="chat-window">
             <div class="msg bot-msg">
-                <div class="avatar bot-avatar">MS</div>
+                <div class="avatar bot-avatar"><img src="2a4eacaa-60f3-4058-98dd-25e0cb764bad.jpg" alt="Mahmoud"></div>
                 <div class="bubble">أهلاً بك! أنا <b>محمود الشماع</b>. لقد قمت بتحسين ذكائي الآن ليفهم حتى الأخطاء الإملائية مثل (صوره بدل سورة). اسألني!</div>
             </div>
         </div>
@@ -683,7 +690,14 @@
         function appendMsg(text, sender) {
             const div = document.createElement('div');
             div.className = `msg ${sender}-msg`;
-            div.innerHTML = `<div class="avatar ${sender}-avatar">${sender==='user'?'U':'MS'}</div><div class="bubble">${text}</div>`;
+            let avatarHtml;
+            if (sender === 'bot') {
+                // use personal photo for bot
+                avatarHtml = '<div class="avatar bot-avatar"><img src="your-photo.jpg" alt="Mahmoud"></div>';
+            } else {
+                avatarHtml = '<div class="avatar user-avatar">U</div>';
+            }
+            div.innerHTML = `${avatarHtml}<div class="bubble">${text}</div>`;
             chatWindow.appendChild(div);
             chatWindow.scrollTop = chatWindow.scrollHeight;
         }
