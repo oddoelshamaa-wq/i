@@ -211,7 +211,7 @@
         <div id="chat-window">
             <div class="msg bot-msg">
                 <div class="avatar bot-avatar"><img src="2a4eacaa-60f3-4058-98dd-25e0cb764bad.jpg" alt="صورتك"></div>
-                <div class="bubble">أهلاً بك! أنا <b>محمود الشماع</b>.  اسألني ياصحبي</div>
+                <div class="bubble">أهلاً بك! أنا <b>محمود الشماع</b>.  اسألني يا صاحبي</div>
             </div>
         </div>
         <div class="input-box">
@@ -990,14 +990,15 @@
                 
                 let botMsg = "";
                 let messageType = "escalation";
+                let reminderInterval = null; // لتخزين setInterval
                 
                 if (questionExists) {
                     // هذا السؤال مطروح قبل كده - الآن ننقله للمهندس
-                    botMsg = "✅ <b>تم تسجيل سؤالك بنجاح!</b><br><br>سيتم تحويلك للمهندس محمود الآن";
+                    botMsg = "✅ <b>تم تسجيل سؤالك بنجاح!</b><br><br>المهندس سيرد عليك في أقرب وقت";
                     messageType = "escalation_confirmed";
                 } else {
-                    // أول مرة بهذا السؤال
-                    botMsg = "❓ سؤالك تخصصي جداً!<br><br>المهندس محمود سيرد عليك قريباً";
+                    // أول مرة بهذا السؤال - رسالة تطمين أولية
+                    botMsg = "⏳ <b>تم استقبال سؤالك!</b><br><br>المهندس مشغول الآن لكن سيرد عليك قريباً";
                     escalatedQuestions.push(normalizedInput); // تسجيل السؤال
                     messageType = "escalation_first";
                 }
@@ -1014,6 +1015,39 @@
                         type: messageType
                     }).catch(err => console.log("Error saving escalation message:", err));
                 }
+                
+                // 🔄 رسائل تطمين متكررة كل 10 ثواني
+                let reminderCount = 0;
+                reminderInterval = setInterval(() => {
+                    reminderCount++;
+                    let reminderMsg = "";
+                    
+                    if (reminderCount === 1) {
+                        reminderMsg = "⏱️ المهندس سيرد عليك الآن...";
+                    } else if (reminderCount === 2) {
+                        reminderMsg = "🔔 المهندس يراجع أسئلتك الآن...";
+                    } else if (reminderCount === 3) {
+                        reminderMsg = "⚡ المهندس يحضر إجابة مفصلة لسؤالك...";
+                    } else if (reminderCount === 4) {
+                        reminderMsg = "✨ سيصل الرد قريباً جداً...";
+                    } else {
+                        // بعد 4 رسائل توقف التكرار
+                        clearInterval(reminderInterval);
+                        return;
+                    }
+                    
+                    appendMsg(reminderMsg, 'bot');
+                    
+                    // حفظ الرسائل التطمينية
+                    if (database) {
+                        database.ref('sessions/' + currentUserId + '/messages').push({
+                            text: reminderMsg,
+                            sender: 'bot',
+                            timestamp: new Date().toLocaleString('ar-EG'),
+                            type: 'reminder'
+                        }).catch(err => console.log("Error saving reminder:", err));
+                    }
+                }, 10000); // كل 10 ثواني
             }
 
             document.getElementById('user-input').value = "";
