@@ -155,6 +155,16 @@
         .bubble b { color: var(--cyan); }
 
         .input-box { padding: 20px; }
+        .input-box select {
+            background: #1e2d4a;
+            border: 1px solid #333;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            width: 100%;
+            box-sizing: border-box;
+        }
         .pill {
             background: rgba(255,255,255,0.05); border: 1.5px solid var(--cyan);
             border-radius: 50px; padding: 8px 15px; display: flex; align-items: center; gap: 10px;
@@ -211,10 +221,17 @@
         <div id="chat-window">
             <div class="msg bot-msg">
                 <div class="avatar bot-avatar"><img src="2a4eacaa-60f3-4058-98dd-25e0cb764bad.jpg" alt="صورتك"></div>
-                <div class="bubble">أهلاً بك! أنا <b>محمود الشماع</b>.  اسألني يا صاحبي</div>
+                <div class="bubble">أهلاً بك! أنا <b>محمود الشماع</b>. اسألني يا صاحبي</div>
             </div>
         </div>
         <div class="input-box">
+            <select id="preset-questions" onchange="applyPreset()">
+                <option value="">اختر سؤالاً جاهزاً...</option>
+                <option value="ما هي أطول سورة في القرآن؟">ما هي أطول سورة في القرآن؟</option>
+                <option value="من مخترع المصباح؟">من مخترع المصباح؟</option>
+                <option value="ما هو أطول نهر في العالم؟">ما هو أطول نهر في العالم؟</option>
+               
+            </select>
             <div class="pill">
                 <i class="fa-solid fa-magic-wand-sparkles" style="color: var(--cyan);"></i>
                 <input type="text" id="user-input" placeholder="اكتب سؤالك هنا..." onkeypress="if(event.key==='Enter') send()">
@@ -479,7 +496,7 @@
             { keys: ["ماري كوري", "إشعاع", "راديوم"], ans: "عالمة الفيزياء ماري كوري اكتكت <b>الراديوم</b>.", label: "ماري كوري" },
             { keys: ["لويس باستور", "تعقيم", " pasteurization"], ans: "مخترع التعقيم هو <b>لويس باستور</b>.", label: "لويس باستور" },
             { keys: ["الكسandr فليمنغ", "بنسلين", "antibiotic"], ans: "مكتشف البنسلين هو <b>الكسandr فليمنغ</b>.", label: "ألكسندر فليمنغ" },
-            { keys: ["نيل ارمسترونغ", "القمر", "apollo"], ans: "أول إنسان يهبط على القمر هو <b>نيل أرمسترونغ</b>.", label: "نيل أرمسترونغ" },
+            { keys: ["نيل ارمسترونغ", "القمر", "apollo", "أول إنسان", "هبط", "أول انسان", "أول إنسان على القمر"], ans: "أول إنسان يهبط على القمر هو <b>نيل أرمسترونغ</b>.", label: "نيل أرمسترونغ" },
             { keys: ["جيفري هيغنز", "ساعة"], ans: "مخترع ساعة البندول هو <b>جيفري هيغنز</b>.", label: "جيفري هيغنز" },
             { keys: ["السير فرنسيس بيكون", "طريقة علمية"], ans: "مؤسس المنهج العلمي هو <b>السير فرنسيس بيكون</b>.", label: "فرنسيس بيكون" },
             
@@ -913,6 +930,18 @@
                 console.error("خطأ في التصحيح:", err);
             }
             return corrected;
+        }
+
+        function applyPreset() {
+            const sel = document.getElementById('preset-questions');
+            const inp = document.getElementById('user-input');
+            if (sel && inp && sel.value) {
+                inp.value = sel.value;
+                // أرسل السؤال مباشرةً بدلاً من انتظار الزر
+                send();
+                // إعادة تعيين القائمة بعد إرسال
+                sel.value = '';
+            }
         }
 
         function send() {
