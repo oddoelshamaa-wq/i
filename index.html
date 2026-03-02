@@ -1,31 +1,116 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>محمود الشماع | Smart GPT 3.5</title>
+
+
+
+    <!-- الشريط العلوي -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
-            --bg: #020b1a;
+            --bg-dark: #020b1a;
             --cyan: #00f2fe;
             --purple: #7000ff;
+            --text-gray: #4a6a8a;
+            --bg: #020b1a;
             --glass: rgba(255, 255, 255, 0.05);
         }
 
-        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; font-family: 'Segoe UI', Tahoma, sans-serif; }
 
         body {
+            background-color: var(--bg-dark);
             background: radial-gradient(circle at center, #0a192f 0%, #020b1a 100%);
-            height: 100vh; display: flex; justify-content: center; align-items: center;
-            font-family: 'Segoe UI', Tahoma, sans-serif; overflow: hidden;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            color: white;
         }
 
+        /* --- شاشة التحميل (Splash Screen) --- */
+        #splash-screen {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--bg-dark);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            transition: opacity 0.8s ease, visibility 0.8s;
+        }
+
+        /* الدائرة المتحركة */
+        .loader-ring {
+            width: 80px;
+            height: 80px;
+            border: 4px solid rgba(255, 255, 255, 0.05);
+            border-top: 4px solid var(--cyan);
+            border-radius: 50%;
+            animation: spin 1s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+            margin-bottom: 40px;
+            box-shadow: 0 0 15px rgba(0, 242, 254, 0.1);
+        }
+
+        /* مجموعة الشعار */
+        .brand-group {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 10px;
+        }
+
+        /* مربع الـ AI المتوهج */
+        .ai-box {
+            background: var(--cyan);
+            color: #020b1a;
+            padding: 5px 12px;
+            border-radius: 10px;
+            font-weight: 900;
+            font-size: 1.8rem;
+            box-shadow: 0 0 30px rgba(0, 242, 254, 0.6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* اسم ELSHAMAA المتدرج */
+        .brand-name {
+            font-size: 3.5rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            background: linear-gradient(to right, var(--purple), var(--cyan));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: 2px;
+        }
+
+        /* النص السفلي الصغير */
+        .sub-text {
+            color: var(--text-gray);
+            font-size: 0.75rem;
+            letter-spacing: 6px;
+            text-transform: uppercase;
+            margin-top: 10px;
+            font-weight: 500;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* --- واجهة الشات --- */
         .chat-card {
+            display: none; /* مخفية حتى تختفي شاشة التحميل */
             width: 95%; max-width: 500px; height: 92vh;
             background: rgba(10, 25, 47, 0.75); backdrop-filter: blur(20px);
             border-radius: 40px; border: 1.5px solid rgba(0, 242, 254, 0.3);
-            display: flex; flex-direction: column;
+            flex-direction: column;
             box-shadow: 0 25px 50px rgba(0,0,0,0.5);
         }
 
@@ -49,7 +134,6 @@
             font-weight: bold; flex-shrink: 0;
         }
         .bot-avatar { background: var(--cyan); color: #000; }
-        /* image inside avatar should fill container */
         .avatar img {
             width: 100%;
             height: 100%;
@@ -79,18 +163,27 @@
             border-radius: 50%; display: flex; align-items: center; justify-content: center;
             cursor: pointer;
         }
-
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body>
 
+    <!-- شاشة التحميل (Splash Screen) -->
+    <div id="splash-screen">
+        <div class="loader-ring"></div>
+        <div class="brand-group">
+            <div class="ai-box">AI</div>
+            <div class="brand-name">ELSHAMAA</div>
+        </div>
+        <div class="sub-text">SMART MANAGEMENT SYSTEM</div>
+    </div>
+
+    <!-- واجهة الشات -->
     <div class="chat-card">
         <div class="header">ChatGPT - Mahmoud elshamaa<i class="fa-solid fa-bolt"></i></div>
         <div id="chat-window">
             <div class="msg bot-msg">
                 <div class="avatar bot-avatar"><img src="2a4eacaa-60f3-4058-98dd-25e0cb764bad.jpg" alt="Mahmoud"></div>
-                <div class="bubble">أهلاً بك! أنا <b>محمود الشماع</b>.  اسألني يا صحبي !</div>
+                <div class="bubble">أهلاً بك! أنا <b>محمود الشماع</b>. لقد قمت بتحسين ذكائي الآن ليفهم حتى الأخطاء الإملائية مثل (صوره بدل سورة). اسألني!</div>
             </div>
         </div>
         <div class="input-box">
@@ -103,6 +196,21 @@
     </div>
 
     <script>
+        // إخفاء شاشة التحميل وإظهار الواجهة بعد 1.5 ثانية
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                const splash = document.getElementById('splash-screen');
+                const chatCard = document.querySelector('.chat-card');
+                if (splash) {
+                    splash.style.opacity = '0';
+                    splash.style.visibility = 'hidden';
+                }
+                if (chatCard) {
+                    chatCard.style.display = 'flex';
+                }
+            }, 1500); // 1.5 ثانية
+        });
+
         const chatWindow = document.getElementById('chat-window');
         const userInput = document.getElementById('user-input');
 
@@ -693,7 +801,7 @@
             let avatarHtml;
             if (sender === 'bot') {
                 // use personal photo for bot
-                avatarHtml = '<div class="avatar bot-avatar"><img src="2a4eacaa-60f3-4058-98dd-25e0cb764bad.jpg" alt="Mahmoud"></div>';
+                avatarHtml = '<div class="avatar bot-avatar"><img src="your-photo.jpg" alt="Mahmoud"></div>';
             } else {
                 avatarHtml = '<div class="avatar user-avatar">U</div>';
             }
@@ -739,7 +847,9 @@
             }
 
             return `بصفتي <b>محمود الشماع</b>، لم أفهم تماماً ما تقصده "${input}". اسألني عن القرآن، العلوم، التاريخ، أو الجغرافيا!`;
-        }
-    </script>
-</body>
-</html>
+            }
+        </script>
+
+
+    </body>
+    </html>
