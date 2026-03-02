@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لوحة مراقبة الشماع - Control Panel</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --bg: #020b1a;
+            --card: #0a192f;
+            --cyan: #00f2fe;
+            --purple: #7000ff;
+            --red: #ff3e3e;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: white;
+            font-family: 'Segoe UI', sans-serif;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            border-bottom: 2px solid var(--purple);
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+
+        .header h1 { color: var(--cyan); text-shadow: 0 0 10px var(--cyan); }
+
+        #users-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 20px;
+        }
+
+        .user-card {
+            background: var(--card);
+            border: 1px solid rgba(0, 242, 254, 0.2);
+            border-radius: 15px;
+            padding: 15px;
+            position: relative;
+            transition: 0.3s;
+        }
+
+        /* حالة التنبيه عند طلب المساعدة */
+        .needs-help {
+            border: 2px solid var(--red);
+            box-shadow: 0 0 15px rgba(255, 62, 62, 0.4);
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+            100% { transform: scale(1); }
+        }
+
+        .user-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #1e2d4a;
+            padding-bottom: 10px;
+        }
+
+        .user-name { color: var(--cyan); font-weight: bold; font-size: 1.1rem; }
+        .device-info { font-size: 0.75rem; color: #8892b0; }
+
+        .chat-history {
+            height: 250px;
+            overflow-y: auto;
+            margin: 15px 0;
+            background: rgba(0,0,0,0.3);
+            border-radius: 10px;
+            padding: 10px;
+            font-size: 0.85rem;
+        }
+
+        .msg-line { margin-bottom: 8px; padding: 5px; border-radius: 5px; }
+        .msg-user { background: rgba(0, 242, 254, 0.1); border-right: 3px solid var(--cyan); }
+        .msg-admin { background: rgba(112, 0, 255, 0.1); border-right: 3px solid var(--purple); text-align: left; }
+
+        .reply-box {
+            display: flex;
+            gap: 10px;
+        }
+
+        .reply-box input {
+            flex: 1;
+            background: #1e2d4a;
+            border: 1px solid #333;
+            padding: 10px;
+            color: white;
+            border-radius: 8px;
+            outline: none;
+        }
+
+        .reply-box button {
+            background: var(--cyan);
+            color: black;
+            border: none;
+            padding: 0 15px;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .status-tag {
+            font-size: 0.7rem;
+            padding: 2px 8px;
+            border-radius: 10px;
+            background: var(--red);
+            color: white;
+            display: none;
+        }
+
+        .show { display: inline-block; }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1><i class="fa-solid fa-user-shield"></i> رادار الشماع للمراقبة والرد</h1>
+        <p id="connection-status">جاري الاتصال بقاعدة البيانات...</p>
+    </div>
+
+    <div id="users-container">
+        <!-- يتم توليد بيانات الزوار هنا تلقائياً -->
+    </div>
+
+    <!-- Firebase SDK v8 -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+
+    <script>
+        // إعدادات Firebase الخاصة بك (elshamaa-ai)
+        const firebaseConfig = {
+            apiKey: "AIzaSyAsNdSaw_i_Dse_H0yN41cg8kRqHQh6pks",
+            authDomain: "elshamaa-ai.firebaseapp.com",
+            databaseURL: "https://elshamaa-ai-default-rtdb.firebaseio.com",
+            projectId: "elshamaa-ai",
+            storageBucket: "elshamaa-ai.appspot.com",
+            messagingSenderId: "764546614549",
+            appId: "1:764546614549:web:0a766032decbf76dcb151c"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        // تحديث حالة الاتصال
+        db.ref('.info/connected').on('value', (snap) => {
+            document.getElementById('connection-status').innerText = 
+                snap.val() ? "● متصل الآن ومستعد للاستقبال" : "○ انقطع الاتصال!";
+        });
+
+        // جلب البيانات لحظة بلحظة
+        db.ref('sessions').on('value', (snapshot) => {
+            const container = document.getElementById('users-container');
+            const data = snapshot.val();
+            
+            if (!data) {
+                container.innerHTML = "<p style='text-align:center; width:100%'>لا يوجد زوار حالياً...</p>";
+                return;
+            }
+
+            container.innerHTML = ""; // مسح القديم للتحديث
+
+            for (let id in data) {
+                const session = data[id];
+                const helpClass = session.needsSupport ? "needs-help" : "";
+                const tagClass = session.needsSupport ? "show" : "";
+
+                // تجميع رسائل الشات لهذا المستخدم
+                let chatHtml = "";
+                if (session.messages) {
+                    Object.values(session.messages).forEach(m => {
+                        const typeClass = m.sender === 'user' ? 'msg-user' : 'msg-admin';
+                        chatHtml += `
+                            <div class="msg-line ${typeClass}">
+                                <b>${m.sender === 'user' ? 'الزائر' : 'أنت'}:</b> ${m.text}
+                                <div style="font-size:0.6rem; opacity:0.5">${m.time || ''}</div>
+                            </div>
+                        `;
+                    });
+                }
+
+                // بناء بطاقة المستخدم
+                container.innerHTML += `
+                    <div class="user-card ${helpClass}" id="card-${id}">
+                        <div class="user-info">
+                            <div>
+                                <span class="user-name">${session.name}</span>
+                                <span class="status-tag ${tagClass}">سؤال جديد!</span>
+                                <div class="device-info">${session.device} | ${session.time}</div>
+                            </div>
+                            <button onclick="deleteUser('${id}')" style="background:none; color:grey; border:none; cursor:pointer;"><i class="fa-solid fa-trash"></i></button>
+                        </div>
+                        
+                        <div class="chat-history" id="history-${id}">
+                            ${chatHtml || "<i>لا توجد رسائل بعد</i>"}
+                        </div>
+
+                        <div class="reply-box">
+                            <input type="text" id="input-${id}" placeholder="اكتب ردك هنا..." onkeypress="if(event.key==='Enter') manualReply('${id}')">
+                            <button onclick="manualReply('${id}')">رد</button>
+                        </div>
+                    </div>
+                `;
+                
+                // التمرير لأسفل المحادثة تلقائياً
+                setTimeout(() => {
+                    const h = document.getElementById(`history-${id}`);
+                    if(h) h.scrollTop = h.scrollHeight;
+                }, 100);
+            }
+        });
+
+        // وظيفة الرد اليدوي
+        function manualReply(userId) {
+            const input = document.getElementById('input-' + userId);
+            const text = input.value.trim();
+            if (!text) return;
+
+            // 1. إرسال الرسالة لـ Firebase (باسم admin)
+            db.ref('sessions/' + userId + '/messages').push({
+                text: text,
+                sender: 'admin',
+                time: new Date().toLocaleTimeString('ar-EG')
+            });
+
+            // 2. إيقاف حالة التنبيه لأنك رددت عليه
+            db.ref('sessions/' + userId).update({
+                needsSupport: false
+            });
+
+            input.value = ""; // تفريغ المربع
+        }
+
+        // وظيفة حذف زائر من القائمة
+        function deleteUser(id) {
+            if(confirm("هل تريد حذف سجل هذا الزائر؟")) {
+                db.ref('sessions/' + id).remove();
+            }
+        }
+    </script>
+</body>
+</html>
