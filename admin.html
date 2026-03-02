@@ -53,10 +53,17 @@
             animation: pulse 1.5s infinite;
         }
 
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.02); }
-            100% { transform: scale(1); }
+        /* حالة التنبيه عند مغادرة الزائر */
+        .user-offline {
+            border: 2px solid var(--red);
+            box-shadow: 0 0 20px rgba(255, 62, 62, 0.6);
+            animation: pulse-offline 1s infinite;
+            opacity: 0.7;
+        }
+
+        @keyframes pulse-offline {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(0.98); box-shadow: 0 0 25px rgba(255, 62, 62, 0.8); }
         }
 
         .user-info {
@@ -185,6 +192,7 @@
             for (let id in data) {
                 const session = data[id];
                 const helpClass = session.needsSupport ? "needs-help" : "";
+                const offlineClass = session.isOnline === false ? "user-offline" : "";
                 const tagClass = session.needsSupport ? "show" : "";
 
                 // تجميع رسائل الشات لهذا المستخدم
@@ -211,7 +219,7 @@
 
                 // بناء بطاقة المستخدم
                 container.innerHTML += `
-                    <div class="user-card ${helpClass}" id="card-${id}">
+                    <div class="user-card ${helpClass} ${offlineClass}" id="card-${id}">
                         <div class="user-info">
                             <div>
                                 <span class="user-name">${session.name}</span>
@@ -240,6 +248,50 @@
             }
         });
 
+        // تتبع تغييرات حالة المستخدم (online/offline)
+        const previousStates = {}; // لتتبع الحالات السابقة
+        
+        db.ref('sessions').on('child_changed', (snapshot) => {
+            const id = snapshot.key;
+            const session = snapshot.val();
+            const card = document.getElementById('card-' + id);
+            
+            // التحقق من تغيير حالة online
+            if (session.isOnline === false && previousStates[id] !== false) {
+                previousStates[id] = false;
+                
+                if (card) {
+                    card.classList.add('user-offline');
+                }
+                
+                // 🔴 تشغيل صوت تنبيه عند المغادرة
+                const disconnectSound = new Audio('https://www.soundjay.com/buttons/button-16.mp3');
+                disconnectSound.play().catch(()=>{});
+                
+                // 🔔 عرض إشعار نافذة منفثقة
+                const notificationMsg = `⚠️ ${session.name} غادر الشات!`;
+                alert(notificationMsg);
+                
+                // 📢 إشعار متقدم (إذا كان متاح)
+                if ('Notification' in window && Notification.permission === 'granted') {
+                    new Notification('🔴 مستخدم غادر', {
+                        body: notificationMsg,
+                        icon: 'https://cdn-icons-png.flaticon.com/512/1828/1828644.png'
+                    });
+                }
+            } else if (session.isOnline === true && previousStates[id] !== true) {
+                previousStates[id] = true;
+                if (card) {
+                    card.classList.remove('user-offline');
+                }
+            }
+        });
+        
+        // طلب إذن الإشعارات عند التحميل
+        if ('Notification' in window && Notification.permission === 'default') {
+            Notification.requestPermission();
+        }
+
         // وظيفة الرد اليدوي
         function manualReply(userId) {
             const input = document.getElementById('input-' + userId);
@@ -257,6 +309,10 @@
             db.ref('sessions/' + userId).update({
                 needsSupport: false
             });
+
+            // 🔊 تشغيل صوت تنبيه عند الإرسال
+            const sendSound = new Audio('https://www.soundjay.com/buttons/beep-07.mp3');
+            sendSound.play().catch(()=>{});
 
             input.value = ""; // تفريغ المربع
         }
